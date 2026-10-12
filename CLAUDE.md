@@ -30,5 +30,6 @@ Remoto: `origin` = https://github.com/stephenlucic/asteorides-js.git
 
 - **Ramas**: `main` siempre estable, sin commits directos. Cambios en `feat/<tema>`, `fix/<tema>`, `docs/<tema>` o `chore/<tema>`.
 - **Commits**: Conventional Commits en español, imperativo y corto. Ej: `fix: declara keys y justPressed`.
-- **Integración**: push de la rama + PR en GitHub (`gh pr create`), merge squash y borrar la rama.
+- **Integración**: sin PR. Con el cambio probado en el navegador, `git switch main && git merge --squash <rama>`, commit, `git push` y borrar la rama (local y remota). Sin preguntar cada vez.
+- **Commits**: nunca agregar `Co-Authored-By` ni atribución de Claude.
 - **Versiones**: tags semver anotados (`v0.1.0`, `v0.2.0`) al cerrar hitos; `git push --tags`.
