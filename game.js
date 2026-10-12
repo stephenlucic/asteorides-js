@@ -372,6 +372,9 @@ function explode(x, y, count = 8) {
   for (let i = 0; i < count; i++) particles.push(new Particle(x, y));
 }
 
+// Slow motion: solo los asteroides van a la mitad de velocidad
+const asteroidTimeScale = () => active.slowmo ? 0.5 : 1;
+
 function activatePowerUp(type) {
   const t = POWERUP_TYPES[type];
   if (t.duration > 0) active[type] = t.duration;
@@ -403,7 +406,7 @@ function update(dt) {
     deadTimer -= dt;
     particles.forEach(p => p.update(dt));
     particles = particles.filter(p => !p.dead);
-    asteroids.forEach(a => a.update(dt));
+    asteroids.forEach(a => a.update(dt * asteroidTimeScale()));
     if (deadTimer <= 0) { state = 'playing'; ship.reset(); }
     return;
   }
@@ -415,7 +418,7 @@ function update(dt) {
 
   ship.update(dt);
   bullets.forEach(b => b.update(dt));
-  asteroids.forEach(a => a.update(dt));
+  asteroids.forEach(a => a.update(dt * asteroidTimeScale()));
   particles.forEach(p => p.update(dt));
   powerups.forEach(p => p.update(dt));
 
