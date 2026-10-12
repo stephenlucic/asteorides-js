@@ -275,6 +275,18 @@ class Ship {
     }
 
     ctx.restore();
+
+    // Escudo: parpadea durante el último segundo
+    if (active.shield && (active.shield > 1 || Math.floor(active.shield * 10) % 2 === 0)) {
+      ctx.save();
+      ctx.translate(this.x, this.y);
+      ctx.strokeStyle = POWERUP_TYPES.shield.color;
+      ctx.lineWidth   = 1.5;
+      ctx.beginPath();
+      ctx.arc(0, 0, this.radius + 8, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
   }
 }
 
@@ -443,7 +455,18 @@ function update(dt) {
   if (ship.invincible <= 0) {
     for (const a of asteroids) {
       if (dist(ship, a) < ship.radius + a.radius * 0.82) {
-        killShip();
+        if (active.shield) {
+          // El escudo absorbe el golpe y destruye el asteroide
+          delete active.shield;
+          ship.invincible = 1;   // evita que los fragmentos (nacen en el impacto) maten a la nave
+          a.dead = true;
+          score += POINTS[a.size];
+          explode(a.x, a.y, a.size * 5);
+          asteroids.push(...a.split());
+          asteroids = asteroids.filter(x => !x.dead);
+        } else {
+          killShip();
+        }
         break;
       }
     }
