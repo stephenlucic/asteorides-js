@@ -329,6 +329,8 @@ class Particle {
 // ── Estado del juego ──────────────────────────────────────────────────────────
 let ship, bullets, asteroids, particles, powerups;
 let active;     // power-ups con temporizador: tipo -> segundos restantes
+let novaCharges; // bombas Nova almacenadas (máx 1)
+let novaFlash;   // segundos restantes del destello de la explosión
 let score, lives, level;
 let state;      // 'playing' | 'dead' | 'gameover'
 let deadTimer;
@@ -352,6 +354,8 @@ function initGame() {
   particles = [];
   powerups  = [];
   active    = {};
+  novaCharges = 0;
+  novaFlash   = 0;
   score  = 0;
   lives  = 3;
   level  = 1;
@@ -377,7 +381,19 @@ const asteroidTimeScale = () => active.slowmo ? 0.5 : 1;
 
 function activatePowerUp(type) {
   const t = POWERUP_TYPES[type];
-  if (t.duration > 0) active[type] = t.duration;
+  if (type === 'nova') novaCharges = 1;
+  else if (t.duration > 0) active[type] = t.duration;
+}
+
+// Bomba Nova: destruye todos los asteroides (el mundo es toroidal, todos están en pantalla)
+function detonateNova() {
+  novaCharges = 0;
+  novaFlash   = 0.25;
+  for (const a of asteroids) {
+    score += POINTS[a.size];
+    explode(a.x, a.y, a.size * 5);
+  }
+  asteroids = [];
 }
 
 function killShip() {
@@ -415,6 +431,8 @@ function update(dt) {
   if (pressed('Space')) {
     bullets.push(...ship.tryShoot());
   }
+  if (pressed('KeyB') && novaCharges > 0) detonateNova();
+  if (novaFlash > 0) novaFlash -= dt;
 
   ship.update(dt);
   bullets.forEach(b => b.update(dt));
@@ -524,6 +542,10 @@ function drawHUD() {
     ctx.fillText(`${t.name} ${active[type].toFixed(1)}s`, 14, 48 + row * 18);
     row++;
   }
+  if (novaCharges > 0) {
+    ctx.fillStyle = POWERUP_TYPES.nova.color;
+    ctx.fillText('NOVA LISTA [B]', 14, 48 + row * 18);
+  }
 }
 
 function drawOverlay(title, sub) {
@@ -545,6 +567,11 @@ function draw() {
   powerups.forEach(p => p.draw());
   bullets.forEach(b => b.draw());
   ship.draw();
+
+  if (novaFlash > 0) {
+    ctx.fillStyle = `rgba(255,255,255,${(novaFlash / 0.25 * 0.6).toFixed(2)})`;
+    ctx.fillRect(0, 0, W, H);
+  }
 
   drawHUD();
 
